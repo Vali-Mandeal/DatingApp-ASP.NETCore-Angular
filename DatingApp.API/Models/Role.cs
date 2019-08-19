@@ -5,6 +5,6 @@ namespace DatingApp.API.Models
 {
     public class Role : IdentityRole<int>
     {
-        public ICollection<User> UserRoles { get; set; }
+        public ICollection<UserRole> UserRoles { get; set; }
     }
 }
