@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 
 namespace DatingApp.API.Controllers
 {
@@ -73,7 +74,7 @@ namespace DatingApp.API.Controllers
                 // that we send it back to the client
                 return Ok(new
                 {
-                    token = GenerateJwtToken(appUser),
+                    token = GenerateJwtToken(appUser).Result,
                     user = userToReturn
                 });
             }
@@ -81,14 +82,21 @@ namespace DatingApp.API.Controllers
             return Unauthorized();
         }
 
-        private string GenerateJwtToken(User user)
+        private async Task<string> GenerateJwtToken(User user)
         {
             // Creating the Token for User
-            var claims = new[] //Our token contains 2 properties
+            var claims = new List<Claim> //Our token contains 2 properties
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.UserName)
             };
+
+            var roles = await _userManager.GetRolesAsync(user);
+            // adding Roles to our Token
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
 
             // below we are making sure that the Token is valid token when it comes back
             // in order to achieve this, the server needs to sign this Token
