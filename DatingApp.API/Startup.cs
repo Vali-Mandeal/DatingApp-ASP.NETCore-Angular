@@ -53,11 +53,12 @@ namespace DatingApp.API
             // weird stuff for being able to query users and roles by ID:
 
             builder = new IdentityBuilder(builder.UserType, typeof(Role), builder.Services);
+
             builder.AddEntityFrameworkStores<DataContext>(); // telling MS Identity to use EF as our store
                                                             // so we can add all our users classes to our database
             builder.AddRoleValidator<RoleValidator<Role>>(); //for checking the roles
             builder.AddRoleManager<RoleManager<Role>>(); // for adding / removing roles
-            builder.AddSignInManager<SignInManager<Role>>(); // obv for signing in
+            builder.AddSignInManager<SignInManager<User>>(); // obv for signing in
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options => {
@@ -85,6 +86,7 @@ namespace DatingApp.API
                 });
             services.AddCors();
             services.Configure<CloudinarySettings>(Configuration.GetSection("CloudinarySettings"));
+            Mapper.Reset();
             services.AddAutoMapper();
             services.AddTransient<Seed>();
             services.AddScoped<IAuthRepository, AuthRepository>();
