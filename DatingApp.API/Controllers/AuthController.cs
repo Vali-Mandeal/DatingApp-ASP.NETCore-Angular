@@ -10,9 +10,11 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 
 namespace DatingApp.API.Controllers
 {
+    [AllowAnonymous]
     [Route("api/[controller]")]
     [ApiController] //checks validation so we don't have to check ourselves (if(!Modelstate.IsValid))
     //it also helps with null reference errors
