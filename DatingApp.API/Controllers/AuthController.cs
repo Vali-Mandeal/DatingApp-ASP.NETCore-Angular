@@ -11,6 +11,9 @@ using System;
 using System.IdentityModel.Tokens.Jwt;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace DatingApp.API.Controllers
 {
@@ -23,11 +26,15 @@ namespace DatingApp.API.Controllers
         private readonly IAuthRepository _repo;
         private readonly IConfiguration _config;
         private readonly IMapper _mapper;
-        public AuthController(IAuthRepository repo, IConfiguration config, IMapper mapper)
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
+        public AuthController(IConfiguration config, IMapper mapper, 
+            UserManager<User> userManager, SignInManager<User> signInManager)
         {
+            _signInManager = signInManager;
+            _userManager = userManager;
             _mapper = mapper;
             _config = config;
-            _repo = repo;
         }
 
         [HttpPost("register")]
@@ -44,23 +51,43 @@ namespace DatingApp.API.Controllers
 
             var userToReturn = _mapper.Map<UserForDetailedDto>(createdUser);
 
-            return CreatedAtRoute("GetUser", new {controller = "Users", id = createdUser.Id}, userToReturn);
+            return CreatedAtRoute("GetUser", new { controller = "Users", id = createdUser.Id }, userToReturn);
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login(UserForLoginDto userForLoginDto)
         {
-            // Check if we have a user in the database with this credentials
-            var userFromRepo = await _repo.Login(userForLoginDto.Username.ToLower(), userForLoginDto.Password);
+            var user = await _userManager.FindByNameAsync(userForLoginDto.Username);
 
-            if (userFromRepo == null)
-                return Unauthorized();
+            var result = await _signInManager
+                .CheckPasswordSignInAsync(user, userForLoginDto.Password, false);
 
+            if (result.Succeeded)
+            {
+                var appUser = await _userManager.Users.Include(p => p.Photos)
+                    .FirstOrDefaultAsync(u => u.UserName == userForLoginDto.Username.ToUpper());
+                
+                var userToReturn = _mapper.Map<UserForListDto>(appUser);
+
+                // we use the token string generated in GenerateJwtToken(), in order to write it in the response 
+                // that we send it back to the client
+                return Ok(new
+                {
+                    token = GenerateJwtToken(appUser),
+                    user = userToReturn
+                });
+            }
+
+            return Unauthorized();
+        }
+
+        private string GenerateJwtToken(User user)
+        {
             // Creating the Token for User
             var claims = new[] //Our token contains 2 properties
             {
-                new Claim(ClaimTypes.NameIdentifier, userFromRepo.Id.ToString()),
-                new Claim(ClaimTypes.Name, userFromRepo.UserName)
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.UserName)
             };
 
             // below we are making sure that the Token is valid token when it comes back
@@ -84,15 +111,7 @@ namespace DatingApp.API.Controllers
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
-            var user = _mapper.Map<UserForListDto>(userFromRepo);
-
-            // we use the above created token variable, in order to write it in the response 
-            // that we send it back to the client
-            return Ok(new
-            {
-                token = tokenHandler.WriteToken(token),
-                user
-            });
+            return tokenHandler.WriteToken(token);
         }
     }
 }
