@@ -23,13 +23,18 @@ export const appRoutes: Routes = [
         canActivate: [AuthGuard],
         children: [
             { path: 'members', component: MemberListComponent,
-                resolve: {users: MemberListResolver} },
+                resolve: {users: MemberListResolver},
+                data: {roles: ['Member', 'Admin', 'Moderator']}},
             { path: 'members/:id', component: MemberDetailComponent,
-                resolve: {user: MemberDetailResolver} },
+                resolve: {user: MemberDetailResolver},
+                data: {roles: ['Member', 'Admin', 'Moderator']}},
             { path: 'member/edit', component: MemberEditComponent,
-                resolve: {user: MemberEditResolver}, canDeactivate: [PreventUnsavedChanges]},
-            { path: 'messages', component: MessagesComponent, resolve: {messages: MessagesResolver}},
-            { path: 'lists', component: ListsComponent, resolve: {users: ListsResolver}},
+                resolve: {user: MemberEditResolver}, canDeactivate: [PreventUnsavedChanges],
+                data: {roles: ['Member', 'Admin', 'Moderator']}},
+            { path: 'messages', component: MessagesComponent, resolve: {messages: MessagesResolver},
+                data: {roles: ['Member', 'Admin', 'Moderator']}},
+            { path: 'lists', component: ListsComponent, resolve: {users: ListsResolver},
+                data: {roles: ['Member', 'Admin', 'Moderator']}},
             { path: 'admin', component: AdminPanelComponent, data: {roles: ['Admin', 'Moderator']}}
         ]
     },
