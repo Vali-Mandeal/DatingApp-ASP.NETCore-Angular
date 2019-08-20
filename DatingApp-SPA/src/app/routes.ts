@@ -12,6 +12,7 @@ import { MemberEditResolver } from './_resolvers/member-edit.resolver';
 import { PreventUnsavedChanges } from './_guards/prevent-unsaved-changes.guard';
 import { ListsResolver } from './_resolvers/lists.resolvers';
 import { MessagesResolver } from './_resolvers/messages.resolver';
+import { AdminPanelComponent } from './admin/admin-panel/admin-panel.component';
 
 // Ordering is important, first match wins, so put wildcard last
 export const appRoutes: Routes = [
@@ -29,6 +30,8 @@ export const appRoutes: Routes = [
                 resolve: {user: MemberEditResolver}, canDeactivate: [PreventUnsavedChanges]},
             { path: 'messages', component: MessagesComponent, resolve: {messages: MessagesResolver}},
             { path: 'lists', component: ListsComponent, resolve: {users: ListsResolver}},
+            { path: 'admin', component: AdminPanelComponent}
+
         ]
     },
     { path: '**', redirectTo: '', pathMatch: 'full'}
