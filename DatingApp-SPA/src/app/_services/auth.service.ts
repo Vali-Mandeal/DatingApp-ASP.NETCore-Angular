@@ -54,9 +54,6 @@ login(model: any) {
     let isMatch = false;
     const userRoles = this.decodedToken.role as Array<string>;
 
-    console.log('allowedRoles: ' , allowedRoles);
-    console.log('userRoles: ' , userRoles);
-
     allowedRoles.forEach(role => {
       if (userRoles.includes(role)) {
         isMatch = true;
