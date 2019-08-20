@@ -48,4 +48,21 @@ login(model: any) {
     const token = localStorage.getItem('token');
     return !this.jwtHelper.isTokenExpired(token);
   }
+
+
+  roleMatch(allowedRoles): boolean {
+    let isMatch = false;
+    const userRoles = this.decodedToken.role as Array<string>;
+
+    console.log('allowedRoles: ' , allowedRoles);
+    console.log('userRoles: ' , userRoles);
+
+    allowedRoles.forEach(role => {
+      if (userRoles.includes(role)) {
+        isMatch = true;
+        return;
+      }
+    });
+    return isMatch;
+  }
 }
